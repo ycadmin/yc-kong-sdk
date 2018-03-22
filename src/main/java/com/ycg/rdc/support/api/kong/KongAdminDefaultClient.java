@@ -86,6 +86,12 @@ public class KongAdminDefaultClient implements KongAdminClient {
 	private <T extends KongResponse> T doPost(KongRequest<T> request,
 			HashMap<String, Object> param, String resourceParam)
 			throws KongException {
+		try{
+			
+		}
+		catch (Exception protocolEx) {
+			throw new KongException();
+		}
 		return null;
 	}
 
