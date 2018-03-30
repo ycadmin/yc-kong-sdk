@@ -12,18 +12,29 @@ import com.ycg.rdc.support.api.kong.request.RetrieveAPIRequest;
 import com.ycg.rdc.support.api.kong.response.RetrieveAPIResponse;
 
 public class ApiTest {
-	KongAdminClient client = KongAdminDefaultClient.Build("http://172.16.37.77:8001", "utf-8", 3000);
+	public static final String HOST="http://172.16.37.77:8001";
+	public static final String CHAR_SET="utf-8";
+	public static final Integer TIMEOUT=3000;
+	KongAdminClient client;
 	
 	@Test
 	public void RetrieveAPI() {
+		client = KongAdminDefaultClient.Build(HOST, CHAR_SET, TIMEOUT);
 		RetrieveAPIRequest request = new RetrieveAPIRequest();
+		RetrieveAPIRequest error_request = new RetrieveAPIRequest();
 		try {
-			RetrieveAPIResponse response = client.execute(request,"cb63f229-60c2-4bb6-8d34-ef8342e0d6c9");
+			RetrieveAPIResponse response = client.execute(request,"test");
+			RetrieveAPIResponse error_response = client.execute(error_request,"cb63f229-60c2-4bb6-8d34");
 			try {
 				System.out.println(response.getBody());
 				Assert.assertEquals(200L, response.getResponseStatusCode().longValue());
 				Assert.assertEquals(60000L, response.getAPIDetailModel().getUpstream_read_timeout().longValue());
 				response.close();
+				
+				System.out.println(error_response.getBody());
+				Assert.assertNotEquals(200L, error_response.getResponseStatusCode().longValue());
+				error_response.close();
+				
 				client.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -33,6 +44,12 @@ public class ApiTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	@Test
+	public void DeleteAPI() {
+		client = KongAdminDefaultClient.Build(HOST, CHAR_SET, TIMEOUT);
+		
 		
 	}
 }

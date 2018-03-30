@@ -4,21 +4,21 @@ import java.util.HashMap;
 
 public abstract class KongRequest<T extends KongResponse> {
 	
-	String method;
-	HashMap<String, Object> params;
-	String requestPath;
-	int timeout;
-	String contentType;
-	String charset;
+	private String method;
+	public HashMap<String, Object> params;
+	private String requestPath;
+	private int timeout;
+	private String contentType;
+	private String charset;
 	T resp;
 	
 	public abstract void setRelativeUriPath(String path);
 	
-	public T getResponse(){
+	public T getKongResponse(){
 		return resp;
 	}
 	
-	public void setResponse(T t){
+	public void setKongResponse(T t){
 		resp = t;
 	}
 	

@@ -35,7 +35,11 @@ public abstract class KongResponse implements Serializable {
 		if(body==null || body.isEmpty()) {
 			if (response != null) {
 				try {
-					body = EntityUtils.toString(response.getEntity());
+					if(getResponseStatusCode()==200){
+						body = EntityUtils.toString(response.getEntity());
+					} else {
+						body=null;
+					}
 				} catch (ParseException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

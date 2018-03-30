@@ -3,13 +3,19 @@ package com.ycg.rdc.support.api.kong;
 import java.io.IOException;
 import java.util.HashMap;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.params.HttpParams;
 
 public class KongAdminDefaultClient implements KongAdminClient {
 
@@ -38,7 +44,8 @@ public class KongAdminDefaultClient implements KongAdminClient {
 		this.timeout = timeout;
 	}
 
-	public static KongAdminDefaultClient Build(String server, String charset, int timeout) {
+	public static KongAdminDefaultClient Build(String server, String charset,
+			int timeout) {
 		return BuildClient.Build(server, charset, timeout);
 	}
 
@@ -73,7 +80,7 @@ public class KongAdminDefaultClient implements KongAdminClient {
 		case "GET":
 			return doGet(request, resourceParam);
 		case "DELETE":
-			return doDelete(request, param, resourceParam);
+			return doDelete(request, resourceParam);
 		case "PUT":
 			return doPut(request, param, resourceParam);
 		case "PATCH":
@@ -86,13 +93,28 @@ public class KongAdminDefaultClient implements KongAdminClient {
 	private <T extends KongResponse> T doPost(KongRequest<T> request,
 			HashMap<String, Object> param, String resourceParam)
 			throws KongException {
-		try{
-			
-		}
-		catch (Exception protocolEx) {
+		try {
+			String uri = server + "/" + request.getRequestPath();
+			if (resourceParam != null && !resourceParam.isEmpty())
+				uri = uri + "/" + resourceParam;
+			if (param != null && !param.isEmpty())
+				uri = uri + "?" + UriTool.MapToURIParam(param);
+			HttpPost httpPost = new HttpPost(uri);
+			RequestConfig requestConfig = RequestConfig.custom()
+					.setConnectTimeout(timeout).setSocketTimeout(timeout)
+					.build();
+			httpPost.setConfig(requestConfig);
+			httpPost.addHeader("Content-Type", ContentType.APPLICATION_JSON
+					.withCharset(charset).toString());
+			StringEntity entity = new StringEntity(request.getParamsString(),
+					charset);
+			httpPost.setEntity(entity);
+			request.getKongResponse().setResponse(
+					(CloseableHttpResponse) httpClient.execute(httpPost));
+			return request.getKongResponse();
+		} catch (Exception protocolEx) {
 			throw new KongException();
 		}
-		return null;
 	}
 
 	private <T extends KongResponse> T doGet(KongRequest<T> request,
@@ -101,7 +123,8 @@ public class KongAdminDefaultClient implements KongAdminClient {
 			String uri = server + "/" + request.getRequestPath();
 			if (resourceParam != null && !resourceParam.isEmpty())
 				uri = uri + "/" + resourceParam;
-			if(request.getParamsString()!=null && !request.getParamsString().isEmpty())
+			if (request.getParamsString() != null
+					&& !request.getParamsString().isEmpty())
 				uri = uri + "?" + request.getParamsString();
 			HttpGet httpget = new HttpGet(uri);
 			RequestConfig requestConfig = RequestConfig.custom()
@@ -111,26 +134,51 @@ public class KongAdminDefaultClient implements KongAdminClient {
 			httpget.addHeader("Content-Type", ContentType.APPLICATION_JSON
 					.withCharset(charset).toString());
 			HttpClientContext context = HttpClientContext.create();
-			request.getResponse().setResponse((CloseableHttpResponse) httpClient
-					.execute(httpget, context));
-			return request.getResponse();
+			request.getKongResponse().setResponse(
+					(CloseableHttpResponse) httpClient
+							.execute(httpget, context));
+			return request.getKongResponse();
 		} catch (ClientProtocolException protocolEx) {
 			throw new KongException();
 		} catch (IOException respIoEx) {
 			throw new KongException();
 		} finally {
-			/*try {
-				httpClient.close();
-			} catch (IOException clientIoEx) {
-				throw new KongException();
-			}*/
+			/*
+			 * try { httpClient.close(); } catch (IOException clientIoEx) {
+			 * throw new KongException(); }
+			 */
 		}
 	}
 
 	private <T extends KongResponse> T doDelete(KongRequest<T> request,
-			HashMap<String, Object> param, String resourceParam)
-			throws KongException {
-		return null;
+			String resourceParam) throws KongException {
+		try {
+			String uri = server + "/" + request.getRequestPath();
+			if (resourceParam != null && !resourceParam.isEmpty())
+				uri = uri + "/" + resourceParam;
+			if (request.getParamsString() != null
+					&& !request.getParamsString().isEmpty())
+				uri = uri + "?" + request.getParamsString();
+			HttpDelete httpdel = new HttpDelete(uri);
+			RequestConfig requestConfig = RequestConfig.custom()
+					.setConnectTimeout(timeout).setSocketTimeout(timeout)
+					.build();
+			httpdel.setConfig(requestConfig);
+			HttpClientContext context = HttpClientContext.create();
+			request.getKongResponse().setResponse(
+					(CloseableHttpResponse) httpClient
+							.execute(httpdel, context));
+			return request.getKongResponse();
+		} catch (ClientProtocolException protocolEx) {
+			throw new KongException();
+		} catch (IOException respIoEx) {
+			throw new KongException();
+		} finally {
+			/*
+			 * try { httpClient.close(); } catch (IOException clientIoEx) {
+			 * throw new KongException(); }
+			 */
+		}
 	}
 
 	private <T extends KongResponse> T doPut(KongRequest<T> request,
@@ -142,7 +190,36 @@ public class KongAdminDefaultClient implements KongAdminClient {
 	private <T extends KongResponse> T doPatch(KongRequest<T> request,
 			HashMap<String, Object> param, String resourceParam)
 			throws KongException {
-		return null;
+		try {
+			String uri = server + "/" + request.getRequestPath();
+			if (resourceParam != null && !resourceParam.isEmpty())
+				uri = uri + "/" + resourceParam;
+			if (request.getParamsString() != null
+					&& !request.getParamsString().isEmpty())
+				uri = uri + "?" + request.getParamsString();
+			HttpPatch httpPatch = new HttpPatch();
+			HttpEntity entity = new StringEntity(request.getParamsString(),
+					charset);
+			httpPatch.setEntity(entity);
+			RequestConfig requestConfig = RequestConfig.custom()
+					.setConnectTimeout(timeout).setSocketTimeout(timeout)
+					.build();
+			httpPatch.setConfig(requestConfig);
+			HttpClientContext context = HttpClientContext.create();
+			request.getKongResponse().setResponse(
+					(CloseableHttpResponse) httpClient.execute(httpPatch,
+							context));
+			return request.getKongResponse();
+		} catch (ClientProtocolException protocolEx) {
+			throw new KongException();
+		} catch (IOException respIoEx) {
+			throw new KongException();
+		} finally {
+			/*
+			 * try { httpClient.close(); } catch (IOException clientIoEx) {
+			 * throw new KongException(); }
+			 */
+		}
 	}
 
 	public CloseableHttpClient getHttpClient() {
@@ -152,8 +229,8 @@ public class KongAdminDefaultClient implements KongAdminClient {
 	public void setHttpClient(CloseableHttpClient httpClient) {
 		this.httpClient = httpClient;
 	}
-	
-	public void close() throws KongException{
+
+	public void close() throws KongException {
 		try {
 			this.httpClient.close();
 		} catch (IOException e) {

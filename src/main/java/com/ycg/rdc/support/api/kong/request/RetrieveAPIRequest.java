@@ -1,6 +1,7 @@
 package com.ycg.rdc.support.api.kong.request;
 
 import com.ycg.rdc.support.api.kong.KongRequest;
+import com.ycg.rdc.support.api.kong.UriTool;
 import com.ycg.rdc.support.api.kong.response.RetrieveAPIResponse;
 
 public class RetrieveAPIRequest extends KongRequest<RetrieveAPIResponse> {
@@ -16,16 +17,20 @@ public class RetrieveAPIRequest extends KongRequest<RetrieveAPIResponse> {
 	}
 
 	@Override
-	public RetrieveAPIResponse getResponse() {
-		if(super.getResponse() == null) {
-			super.setResponse(new RetrieveAPIResponse());
+	public RetrieveAPIResponse getKongResponse() {
+		if(super.getKongResponse() == null) {
+			super.setKongResponse(new RetrieveAPIResponse());
 		}
-		return super.getResponse();
+		return super.getKongResponse();
 	}
 
 	@Override
 	public String getParamsString() {
-		return null;
+		if(super.params!=null){
+			return UriTool.MapToURIParam(super.params);
+		} else {
+			 return null;
+		}
 	}
 
 }
