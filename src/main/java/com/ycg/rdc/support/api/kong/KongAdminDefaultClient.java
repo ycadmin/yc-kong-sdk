@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -113,7 +114,7 @@ public class KongAdminDefaultClient implements KongAdminClient {
 					(CloseableHttpResponse) httpClient.execute(httpPost));
 			return request.getKongResponse();
 		} catch (Exception protocolEx) {
-			throw new KongException();
+			throw new KongException(protocolEx);
 		}
 	}
 
@@ -139,9 +140,9 @@ public class KongAdminDefaultClient implements KongAdminClient {
 							.execute(httpget, context));
 			return request.getKongResponse();
 		} catch (ClientProtocolException protocolEx) {
-			throw new KongException();
+			throw new KongException(protocolEx);
 		} catch (IOException respIoEx) {
-			throw new KongException();
+			throw new KongException(respIoEx);
 		} finally {
 			/*
 			 * try { httpClient.close(); } catch (IOException clientIoEx) {
@@ -170,9 +171,9 @@ public class KongAdminDefaultClient implements KongAdminClient {
 							.execute(httpdel, context));
 			return request.getKongResponse();
 		} catch (ClientProtocolException protocolEx) {
-			throw new KongException();
+			throw new KongException(protocolEx);
 		} catch (IOException respIoEx) {
-			throw new KongException();
+			throw new KongException(respIoEx);
 		} finally {
 			/*
 			 * try { httpClient.close(); } catch (IOException clientIoEx) {
@@ -184,7 +185,36 @@ public class KongAdminDefaultClient implements KongAdminClient {
 	private <T extends KongResponse> T doPut(KongRequest<T> request,
 			HashMap<String, Object> param, String resourceParam)
 			throws KongException {
-		return null;
+		try {
+			String uri = server + "/" + request.getRequestPath();
+			if (resourceParam != null && !resourceParam.isEmpty())
+				uri = uri + "/" + resourceParam;
+			if (request.getParamsString() != null
+					&& !request.getParamsString().isEmpty())
+				uri = uri + "?" + request.getParamsString();
+			HttpPut httpPut = new HttpPut();
+			HttpEntity entity = new StringEntity(request.getParamsString(),
+					charset);
+			httpPut.setEntity(entity);
+			RequestConfig requestConfig = RequestConfig.custom()
+					.setConnectTimeout(timeout).setSocketTimeout(timeout)
+					.build();
+			httpPut.setConfig(requestConfig);
+			HttpClientContext context = HttpClientContext.create();
+			request.getKongResponse().setResponse(
+					(CloseableHttpResponse) httpClient.execute(httpPut,
+							context));
+			return request.getKongResponse();
+		} catch (ClientProtocolException protocolEx) {
+			throw new KongException(protocolEx);
+		} catch (IOException respIoEx) {
+			throw new KongException(respIoEx);
+		} finally {
+			/*
+			 * try { httpClient.close(); } catch (IOException clientIoEx) {
+			 * throw new KongException(); }
+			 */
+		}
 	}
 
 	private <T extends KongResponse> T doPatch(KongRequest<T> request,
@@ -211,9 +241,9 @@ public class KongAdminDefaultClient implements KongAdminClient {
 							context));
 			return request.getKongResponse();
 		} catch (ClientProtocolException protocolEx) {
-			throw new KongException();
+			throw new KongException(protocolEx);
 		} catch (IOException respIoEx) {
-			throw new KongException();
+			throw new KongException(respIoEx);
 		} finally {
 			/*
 			 * try { httpClient.close(); } catch (IOException clientIoEx) {

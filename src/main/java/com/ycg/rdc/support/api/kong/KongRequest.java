@@ -54,4 +54,6 @@ public abstract class KongRequest<T extends KongResponse> {
 	}
 	
 	public abstract String getParamsString();
+	
+	public abstract String getJSONParamsString();
 }
